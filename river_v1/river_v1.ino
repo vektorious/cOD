@@ -10,16 +10,24 @@ DallasTemperature sensors(&oneWire);
 
 float darksig = 0;
 float lightsig = 0;
+float total_signal = 0;
 float total = 0;
 float temp = 0;
+float blank = 0;
+float blanksignal = 0;
+
+bool blanked = false;
 
 int sensor = A0;  // output pin of OPT101 attached to Analog 0
 int LEDpin = 2;    // LED + attached to D2
+int Buttonpin = 3; // Button attached to D3
+int buttonState = 0;
 
 int counter = 0;
 
 void setup() {
-  Serial.begin(9600);
+  pinMode(Buttonpin, INPUT);
+  Serial.begin(115200);
   delay(100);
   // initialize the LCD
   lcd.begin();
@@ -28,12 +36,40 @@ void setup() {
   counter = 10;
   for (int dummy = 0; dummy < 10; dummy++)
   {
+
+    buttonState = digitalRead(Buttonpin);
+    if (buttonState == HIGH){
+      counter = 20;
+      for (int dummy = 0; dummy < 10; dummy++){
+        lcd.setCursor(0, 0);
+        lcd.print("                            ");
+        lcd.setCursor(0, 1);
+        lcd.print("                            ");
+        lcd.setCursor(0, 0);
+        lcd.print("Done in: ");
+        lcd.print(counter);
+        lcd.setCursor(0, 1);
+        lcd.print("Blanking...");
+        blanksignal = ODblank(1);
+        blank = blank + blanksignal;
+        
+        counter = abs(counter - 1);
+      }
+      blanked = true;
+      break;
+    }
+     
     lcd.setCursor(0, 0);
     lcd.print("                            ");
+    lcd.setCursor(0, 1);
+    lcd.print("                            ");
+    
     lcd.setCursor(0, 0);
     lcd.print("Starting in: ");
     lcd.print(counter);
     counter = abs(counter - 1);
+    lcd.setCursor(0, 1);
+    lcd.print("Press for blank!");
     delay(1000);
   }
   lcd.setCursor(0, 0);
@@ -53,11 +89,40 @@ void setup() {
 void loop() {
   delay(100);
   
-  ODmeasurement(10);
+  ODmeasurement(1);
+  Serial.print(',');
   TEMPmeasurement();
   Serial.print('\n');
    
   delay(100);
+}
+
+float ODblank(int multiplier) {
+  darksig = 0;
+  digitalWrite(LEDpin, LOW); //ensures cell 1 LED is off!!!!
+  for (int dummy = 0; dummy < multiplier; dummy++)
+  {
+    delay(100);
+    darksig = abs(darksig + analogRead(sensor));
+    delay(100);
+  }
+  delay(100);
+
+  lightsig = 0;
+  digitalWrite(LEDpin, HIGH); //turns exp LED on
+  delay(1000);
+  for (int dummy = 0; dummy < multiplier; dummy++)
+  {
+    delay(100);
+    lightsig = (lightsig + analogRead(sensor));
+    delay(100);
+  }
+  delay(100);
+  digitalWrite(LEDpin, LOW); //ensures cell 1 LED is off!!!!
+  delay(1000);
+  
+  total_signal = abs(lightsig - darksig)/multiplier;
+  return total_signal;
 }
 
 void ODmeasurement(int multiplier) {
@@ -65,41 +130,49 @@ void ODmeasurement(int multiplier) {
   digitalWrite(LEDpin, LOW); //ensures cell 1 LED is off!!!!
   for (int dummy = 0; dummy < multiplier; dummy++)
   {
-    delay(500);
+    delay(100);
     darksig = abs(darksig + analogRead(sensor));
-    delay(500);
+    delay(100);
   }
-  delay(500);
+  delay(100);
 
   lightsig = 0;
   digitalWrite(LEDpin, HIGH); //turns exp LED on
   delay(1000);
   for (int dummy = 0; dummy < multiplier; dummy++)
   {
-    delay(500);
+    delay(100);
     lightsig = (lightsig + analogRead(sensor));
-    delay(500);
+    delay(100);
   }
-  delay(500);
+  delay(100);
   digitalWrite(LEDpin, LOW); //ensures cell 1 LED is off!!!!
+  delay(1000);
+  
+  total_signal = abs(lightsig - darksig);
 
-  total = abs(lightsig - darksig);
+  
 
   lcd.setCursor(0, 0);
   lcd.print("                                  ");
   lcd.setCursor(0, 0);
   lcd.print("Signal: ");
-  lcd.print(total);
+  if(blanked = true){
+    total = -log10(total_signal/(blank*multiplier));
+    lcd.print(total);
+    lcd.print(" OD");
+    delay(100);
+    Serial.print(total);
+  }
+  else {
+    lcd.print(total_signal);
+    delay(100);
+    Serial.print(total_signal);
+  }
+
   
   delay(100);
-  Serial.print("cell_1");
-  Serial.print(',');
-  Serial.print(darksig);
-  Serial.print(',');
-  Serial.print(lightsig);
-  Serial.print(',');
   Serial.print(total);
-  Serial.print(',');  
 }
 
 void TEMPmeasurement() 
@@ -113,6 +186,6 @@ void TEMPmeasurement()
   lcd.setCursor(0, 1);
   lcd.print("Temp: ");
   lcd.print(temp);
-  lcd.print(" C"); 
+  lcd.print(" C");
   Serial.print(temp);
 } 
