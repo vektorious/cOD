@@ -27,7 +27,7 @@ int counter = 0;
 
 void setup() {
   pinMode(Buttonpin, INPUT);
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(100);
   // initialize the LCD
   lcd.begin();
@@ -57,6 +57,8 @@ void setup() {
       }
       blanked = true;
       break;
+    } else {
+      blanked = false;
     }
      
     lcd.setCursor(0, 0);
@@ -89,7 +91,7 @@ void setup() {
 void loop() {
   delay(100);
   
-  ODmeasurement(1);
+  ODmeasurement(10);
   Serial.print(',');
   TEMPmeasurement();
   Serial.print('\n');
@@ -157,7 +159,7 @@ void ODmeasurement(int multiplier) {
   lcd.print("                                  ");
   lcd.setCursor(0, 0);
   lcd.print("Signal: ");
-  if(blanked = true){
+  if(blanked == true){
     total = -log10(total_signal/(blank*multiplier));
     lcd.print(total);
     lcd.print(" OD");
@@ -169,10 +171,6 @@ void ODmeasurement(int multiplier) {
     delay(100);
     Serial.print(total_signal);
   }
-
-  
-  delay(100);
-  Serial.print(total);
 }
 
 void TEMPmeasurement() 
