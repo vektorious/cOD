@@ -1,12 +1,12 @@
 #include <OneWire.h>
 #define ONE_WIRE_BUS 4
-#include <DallasTemperature.h>
+//#include <DallasTemperature.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 // Set the LCD address to 0x27 for a 16 chars and 2 line display
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
-OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature sensors(&oneWire);
+//OneWire oneWire(ONE_WIRE_BUS);
+//DallasTemperature sensors(&oneWire);
 
 float darksig = 0;
 float lightsig = 0;
@@ -18,9 +18,9 @@ float blanksignal = 0;
 
 bool blanked = false;
 
-int sensor = A0;  // output pin of OPT101 attached to Analog 0
-int LEDpin = 2;    // LED + attached to D2
-int Buttonpin = 3; // Button attached to D3
+int sensor = A1;  // output pin of OPT101 attached to Analog 0
+int LEDpin = 3;    // LED + attached to D2
+int Buttonpin = 1; // Button attached to D3
 int buttonState = 0;
 
 int counter = 0;
@@ -44,7 +44,7 @@ void setup() {
         lcd.setCursor(0, 0);
         lcd.print("                            ");
         lcd.setCursor(0, 1);
-        lcd.print("                            ");
+        lc d.print("                            ");
         lcd.setCursor(0, 0);
         lcd.print("Done in: ");
         lcd.print(counter);
@@ -93,7 +93,7 @@ void loop() {
   
   ODmeasurement(10);
   Serial.print(',');
-  TEMPmeasurement();
+  //TEMPmeasurement();
   Serial.print('\n');
    
   delay(100);
@@ -176,14 +176,14 @@ void ODmeasurement(int multiplier) {
 void TEMPmeasurement() 
 {
   delay(500) ; 
-  sensors.requestTemperatures(); // Send the command to get temperature readings
-  temp = sensors.getTempCByIndex(0);
+  //sensors.requestTemperatures(); // Send the command to get temperature readings
+  //temp = sensors.getTempCByIndex(0);
   
   lcd.setCursor(0, 1);
   lcd.print("                                  ");
   lcd.setCursor(0, 1);
-  lcd.print("Temp: ");
-  lcd.print(temp);
-  lcd.print(" C");
-  Serial.print(temp);
+  //lcd.print("Temp: ");
+  //lcd.print(temp);
+  //lcd.print(" C");
+  //Serial.print(temp);
 } 
